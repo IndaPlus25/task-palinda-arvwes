@@ -30,10 +30,12 @@ func Sqrt(x float64) float64 {
 	}
 
 }
-func main() {
+func loops() {
 	x := 2.0
-	fmt.Println("start")
+
+	fmt.Println("loop exercise:")
 	fmt.Println("Sqrt function: ", Sqrt(x))
 	fmt.Println("math.sqrt:", math.Sqrt(x))
 	fmt.Println("diff: ", math.Sqrt(x)-Sqrt(x))
+	println()
 }
