@@ -16,4 +16,5 @@ func Pic(dx, dy int) [][]uint8 {
 func slices() {
 	println("slices exercise:")
 	pic.Show(Pic)
+	println()
 }
