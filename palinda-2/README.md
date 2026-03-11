@@ -6,12 +6,16 @@ relevant questions from the root of the repo, preferably in
 
 ##### Buggy Code 1
 1. What is wrong:
+does not work due to chanel never being able to let go of the value
+causing the program to freeze on the ch <- "Hello world!" line
 2. How it was fixed:
+creating a buffered chanel fixes it since the ch can let go of the value and place it in the buffer (as long as the buffer is not full) and move on and print
+
 
 ##### Buggy Code 2
-1. What is wrong:
+1. What is wrong: this program does not count the final value because main closes before the print function has time to print. 
 2. How it was fixed:
-
+Fixed by cereating a wait group so main waits for the go print thread to finish.
 #### Task 2
 
 | Question | What I expected | What happened | Why I believe this happened |
