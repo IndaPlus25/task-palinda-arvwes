@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 )
@@ -12,19 +13,57 @@ const DataFile = "loremipsum.txt"
 
 // Return the word frequencies of the text argument.
 func WordCount(text string) map[string]int {
-	freqs := make(map[string]int)
-	text = strings.ToLower(text)
-	var builder strings.Builder
-	for _, c := range text {
-		if !unicode.IsPunct(c) && !unicode.IsSymbol(c) {
-			builder.WriteRune(c)
+
+	words := strings.Fields(text)
+	var wg sync.WaitGroup
+	numWorkers := 8
+	freqCh := make(chan map[string]int, numWorkers)
+	var chunks [][]string
+	chunkSize := len(words) / numWorkers
+
+	for i := 0; i < len(words); i += chunkSize {
+		j := i + chunkSize
+		if j > len(words) {
+			j = len(words)
+		}
+		chunks = append(chunks, words[i:j])
+	}
+
+	for _, chunk := range chunks {
+		wg.Add(1)
+		go func(textPart []string) {
+			defer wg.Done()
+			localFreqs := make(map[string]int)
+
+			// clean and count words localy
+			for _, word := range textPart {
+				var builder strings.Builder
+
+				//clean the words chars
+				for _, c := range word {
+					if !unicode.IsPunct(c) && !unicode.IsSymbol(c) {
+						builder.WriteRune(unicode.ToLower(c))
+					}
+				}
+				word = builder.String()
+				localFreqs[word]++
+			}
+			freqCh <- localFreqs
+		}(chunk)
+	}
+	//wait for wait group, then close
+	go func() {
+		wg.Wait()
+		close(freqCh)
+	}()
+	// count total of word counts
+	totalFreqs := make(map[string]int)
+	for freqs := range freqCh {
+		for word, count := range freqs {
+			totalFreqs[word] += count
 		}
 	}
-	data := builder.String()
-	for _, word := range strings.Fields(data) {
-		freqs[word]++
-	}
-	return freqs
+	return totalFreqs
 }
 
 // Benchmark how long it takes to count word frequencies in text numRuns times.
